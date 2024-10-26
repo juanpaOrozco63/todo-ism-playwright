@@ -1,21 +1,21 @@
 import { Locator, Page } from "@playwright/test";
 
 export class Principal {
-    readonly pagina: Page;
-    readonly botonIniciarSesion: Locator;
+    private readonly page: Page;
+    private readonly loginLink: Locator;
 
-    private readonly URL_TODOISM = 'http://127.0.0.1:5000/';
-
-    constructor(pagina: Page) {
-        this.pagina = pagina;
-        this.botonIniciarSesion = pagina.getByRole('navigation').getByRole('link', { name: 'Iniciar Sesión' });
+    constructor(page: Page) {
+        this.page = page;
+        this.loginLink = this.page
+                            .getByRole('navigation')
+                            .getByRole('link', { name: 'Login' });
     }
 
-    abrirPagina = async () => {
-        await this.pagina.goto(this.URL_TODOISM);
+    openWebPage = async () => {
+        await this.page.goto('http://127.0.0.1:5000/#intro');
     }
 
-    clickBotonIniciarSesion = async () => {
-        await this.botonIniciarSesion.click();
+    clickOnLogin = async () => {
+        await this.loginLink.click();
     }
 }

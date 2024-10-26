@@ -2,28 +2,30 @@ import { expect, Locator, Page } from "@playwright/test";
 
 export class Login {
 
-    readonly pagina: Page;
-    readonly botonObtenerCuentaPrueba: Locator;
-    readonly botonIniciarSesion: Locator;
-    readonly campoUsuario: Locator;
+    private readonly page                : Page;
+    private readonly requestAccountBtn   : Locator;
+    private readonly userField           : Locator;
+    private readonly successToastMessage : Locator;
+    private readonly signInButton        : Locator;
 
-    readonly TEXTO_BOTON_OBTENER_CUENTA_PRUEBA = 'Obtener una cuenta de prueba';
-    readonly ID_BOTON_INICIAR_SESION = '#login-btn';
-    readonly ID_CAMPO_USUARIO = '#username-input';
-
-    constructor(pagina) {
-        this.pagina = pagina;
-        this.botonObtenerCuentaPrueba = pagina.getByText(this.TEXTO_BOTON_OBTENER_CUENTA_PRUEBA);
-        this.botonIniciarSesion = pagina.locator(this.ID_BOTON_INICIAR_SESION);
-        this.campoUsuario = pagina.locator(this.ID_CAMPO_USUARIO);
+    constructor(page: Page) {
+        this.page                = page;
+        this.requestAccountBtn    = this.page.getByText('Get a test account');
+        this.userField            = this.page.getByPlaceholder('Username');
+        this.successToastMessage  = this.page.locator('#toast-container').getByText('Generate success.');
+        this.signInButton         = this.page.locator('#login-btn');
     }
 
-    clickBotonObtenerCuentaPrueba = async () => {
-        await this.botonObtenerCuentaPrueba.click();
-        await expect(this.campoUsuario).not.toBeEmpty();
+    clickOnGetTestAccount = async (): Promise<void> => {
+        await this.requestAccountBtn.click();
     }
-
-    clickBotonIniciarSesion = async () => {
-        await this.botonIniciarSesion.click();
+    
+    awaitForUserGeneration = async (): Promise<string> => {
+        await expect(this.successToastMessage).toHaveText('Generate success.');
+        return await this.userField.inputValue();
+    }
+    
+    clickOnLogin = async (): Promise<void> => {
+        await this.signInButton.click();
     }
 }

@@ -1,64 +1,46 @@
-import { Locator, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 
 export class Todo {
+    private readonly page      : Page;
+    private readonly inputField: Locator;
+    private readonly taskList  : Locator;
+    private readonly resetBtn  : Locator;
 
-    readonly pagina: Page;
-    readonly campoTarea: Locator;
-    readonly botonLimpiarListaTareas: Locator;
-
-    private readonly TEXTO_PLACEHOLDER_TAREA = '¿Qué necesita hacerse?';
-    private readonly TEXTO_BOTON_LIMPIAR_LISTA_TAREAS = 'limpiar_todo';
-
-    constructor(pagina) {
-        this.pagina = pagina;
-        this.campoTarea = pagina.getByPlaceholder(this.TEXTO_PLACEHOLDER_TAREA);
-        this.botonLimpiarListaTareas = pagina.getByText(this.TEXTO_BOTON_LIMPIAR_LISTA_TAREAS);
+    constructor(page: Page) {
+        this.page       = page;
+        this.inputField = this.page.locator('#item-input');
+        this.taskList   = this.page.locator('.items');
+        this.resetBtn   = this.page.locator('#clear-btn');
     }
 
-    async agregarTareaALista(tarea: string): Promise<void> {
-        await this.agregarTarea(tarea);
+    awaitForAppToBeReady = async () => {
+        await expect(this.inputField).toBeVisible();
     }
 
-    async marcarTareaComoCompleta(textoTarea: string): Promise<void> {
-        const FILTRO_TAREA_CREADA = `check_box_outline_blank ${textoTarea}`;
-        const checkboxTareaCreada: Locator = this.pagina.locator('span').filter({ hasText: FILTRO_TAREA_CREADA }).locator('i');
-        await checkboxTareaCreada.click();
+    createTask = async (taskName: string) => {
+        await this.inputField.click();
+        await this.inputField.pressSequentially(taskName);
+        await this.inputField.press('Enter');
     }
 
-    async limpiarListaTareas(): Promise<void> {
-        await this.botonLimpiarListaTareas.click();
+    completeTask = async (taskName: string) => {
+        const taskToggle = this.page.locator(`//span[@class = "item-body" and contains(.,"${taskName}")]/a/i`);
+        await taskToggle.click();
     }
 
-    async verificarSiTareaEsCompleta(textoTarea: string): Promise<boolean> {
-        const SELECTOR_TAREA_COMPLETA = this.obtenerSelectorTareaCompleta(textoTarea);
-        await this.pagina.waitForSelector(SELECTOR_TAREA_COMPLETA);
-        const checkboxTareaCompleta: Locator = this.pagina.locator(SELECTOR_TAREA_COMPLETA);
-        return await checkboxTareaCompleta.isVisible();
+    clearCompletedTasks = async () => {
+        await this.resetBtn.click();
     }
 
-    async verificarSiTareaFueEliminada(): Promise<boolean> {
-        const SELECTOR_TAREA_COMPLETA = this.obtenerSelectorTareaCompleta();
-        await this.pagina.waitForSelector(SELECTOR_TAREA_COMPLETA, { state: 'detached' });
-        const cantidadElementosExistentes = await this.pagina.locator(SELECTOR_TAREA_COMPLETA).count();
-        return !cantidadElementosExistentes;
+    validateTaskCreation = async (taskName: string) => {
+        await expect(this.taskList.getByText(taskName)).toHaveClass('active-item');
     }
 
-    async obtenerTextoTareaGenerada(textoTarea: string): Promise<string> {
-        const SELECTOR_TAREA_CREADA = `//span[@class = "active-item" and contains(., "${textoTarea}")]`;
-        const tareaCreada: Locator = this.pagina.locator(SELECTOR_TAREA_CREADA);
-        return await tareaCreada.textContent() || '';
+    validateTaskCompletion = async (taskName: string) => {
+        await expect(this.taskList.getByText(taskName)).toHaveClass('inactive-item');
     }
 
-    private async agregarTarea(tarea: string): Promise<void> {
-        await this.campoTarea.click();
-        await this.campoTarea.fill(tarea);
-        await this.campoTarea.press('Enter');
-    }
-
-    private obtenerSelectorTareaCompleta(textoTarea?: string): string {
-        if (textoTarea) {
-            return `//span[@class = "inactive-item" and contains(., "${textoTarea}")]`;
-        }
-        return `//span[@class = "inactive-item"]`;
+    validateTaskCleared = async (taskName: string) => {
+        await expect(this.taskList).not.toHaveText(taskName);
     }
 }

@@ -1,50 +1,66 @@
-import test, { expect } from '@playwright/test';
-import { Principal } from '../paginas/principal';
+import { test } from '@playwright/test';
 import { Login } from '../paginas/login';
+import { Principal } from '../paginas/principal';
 import { Todo } from '../paginas/todo';
+import { task } from '../data/data';
 
 
-test.describe('Casos de prueba de Todoism', () => {
+test.describe('Todoism Pruebas', () => {
+
+  test.beforeEach(async ({ page }) => {
+    test.slow();
+
+    const principal = new Principal(page);
+    const login = new Login(page);
     
-    test.beforeEach(async ({ page }) => {
-        test.slow();
-        const paginaPrincipal: Principal = new Principal(page);
-        const paginaLogin: Login = new Login(page);
+    await principal.openWebPage();
+    await principal.clickOnLogin();
 
-        await paginaPrincipal.abrirPagina();
-        await paginaPrincipal.clickBotonIniciarSesion();
-        await paginaLogin.clickBotonObtenerCuentaPrueba();
-        await paginaLogin.clickBotonIniciarSesion();
-    });
+    await login.clickOnGetTestAccount();
+    await login.awaitForUserGeneration();
+    await login.clickOnLogin();
+  });
 
-    test('Crear una nueva tarea', async ({ page }) => {
-        test.slow();
-        const textoTarea = 'Tarea de Prueba';
-        const paginaTodo = new Todo(page);
-        await paginaTodo.agregarTareaALista(textoTarea);
-        const textoTareaGenerada = await paginaTodo.obtenerTextoTareaGenerada(textoTarea);        
-        expect(textoTareaGenerada).toBe(textoTarea);
-    });
-    
-    test('Crear una tarea y marcarla como completa', async ({ page }) => {
-        test.slow();
-        const textoTarea = 'Tarea de Prueba';
-        const paginaTodo = new Todo(page);
-        await paginaTodo.agregarTareaALista(textoTarea);
-        await paginaTodo.marcarTareaComoCompleta(textoTarea);
-        const esTareaCompleta = await paginaTodo.verificarSiTareaEsCompleta(textoTarea);
-        expect(esTareaCompleta).toBeTruthy();
-    });
-    
-    test('Limpiar lista de tareas', async ({ page }) => {
-        test.slow();
-        const textoTarea = 'Tarea de Prueba';
-        const paginaTodo = new Todo(page);
-        await paginaTodo.agregarTareaALista(textoTarea);
-        await paginaTodo.marcarTareaComoCompleta(textoTarea);
-        await paginaTodo.limpiarListaTareas();
-        const esTareaEliminada = await paginaTodo.verificarSiTareaFueEliminada();
-        expect(esTareaEliminada).toBeTruthy(); 
-    });
+  test('Crear una tarea', async ({ page }) => {
+    test.slow();
+
+    const todo = new Todo(page);
+
+    await todo.awaitForAppToBeReady();
+    await todo.createTask(task);
+
+    await todo.validateTaskCreation(task);
+
+    await page.screenshot({ path: `ss/tarea-creada.png` });
+  });
+
+  test('Completar una tarea', async ({ page }) => {
+    test.slow();
+
+    const todo = new Todo(page);
+
+    await todo.awaitForAppToBeReady();
+    await todo.createTask(task);
+    await todo.completeTask(task);
+
+    await todo.validateTaskCompletion(task);
+
+    await page.screenshot({ path: `ss/tarea-completada.png` });
+  });
+
+  test('Limpiar tareas completadas', async ({ page }) => {
+    test.slow();
+
+    const todo = new Todo(page);
+
+    await todo.awaitForAppToBeReady();
+    await todo.createTask(task);
+    await todo.completeTask(task);
+    await todo.clearCompletedTasks();
+
+    await todo.validateTaskCleared(task);
+
+    await page.screenshot({ path: `ss/limpiar-tarea.png` });
+  });
 
 });
