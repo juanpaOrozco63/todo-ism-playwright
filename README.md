@@ -1,5 +1,5 @@
 # TODO-ISM Playwright
-
+En este trabajo se realizaron pruebas en playwright y se trabajo con el ci de github actions
 ## Descripcion
 
 - Integración con CI/CD
@@ -12,7 +12,7 @@
 
 1. **Clona este repositorio**:
    ```bash
-   git clone 
+   git clone https://github.com/juanpaOrozco63/todo-ism-playwright
    cd todo-ism
 
 2. **Instala las dependencias**:
@@ -21,5 +21,5 @@
 
 3. **Ejecución de Pruebas**:
    ```bash
-   npm run test
+   npx playwright test
 
